@@ -6,6 +6,9 @@ Lab 11 — Part 2B: Output Guardrails
 """
 import re
 import textwrap
+import os
+import requests
+import json
 
 from google.genai import types
 from google.adk.agents import llm_agent
@@ -41,12 +44,11 @@ def content_filter(response: str) -> dict:
 
     # PII patterns to check
     PII_PATTERNS = {
-        # TODO: Add regex patterns for:
-        # - VN phone number: r"0\d{9,10}"
-        # - Email: r"[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}"
-        # - National ID (CMND/CCCD): r"\b\d{9}\b|\b\d{12}\b"
-        # - API key pattern: r"sk-[a-zA-Z0-9-]+"
-        # - Password pattern: r"password\s*[:=]\s*\S+"
+        "Phone": r"0\d{9,10}",
+        "Email": r"[\w.-]+@[\w.-]+\.[a-zA-Z]{2,}",
+        "ID": r"\b\d{9}\b|\b\d{12}\b",
+        "API_Key": r"sk-[a-zA-Z0-9-]+",
+        "Password": r"password\s*[:=]\s*\S+",
     }
 
     for name, pattern in PII_PATTERNS.items():
@@ -89,15 +91,11 @@ Respond with ONLY one word: SAFE or UNSAFE
 If UNSAFE, add a brief reason on the next line.
 """
 
-# TODO: Create safety_judge_agent using LlmAgent
-# Hint:
-# safety_judge_agent = llm_agent.LlmAgent(
-#     model="gemini-2.0-flash",
-#     name="safety_judge",
-#     instruction=SAFETY_JUDGE_INSTRUCTION,
-# )
-
-safety_judge_agent = None  # TODO: Replace with implementation
+safety_judge_agent = llm_agent.LlmAgent(
+    model=os.environ.get("LLM_MODEL_NAME", "gemini-3.1-flash-lite"),
+    name="safety_judge",
+    instruction=SAFETY_JUDGE_INSTRUCTION,
+)
 judge_runner = None
 
 
@@ -111,19 +109,50 @@ def _init_judge():
 
 
 async def llm_safety_check(response_text: str) -> dict:
-    """Use LLM judge to check if response is safe.
-
-    Args:
-        response_text: The agent's response to evaluate
-
-    Returns:
-        dict with 'safe' (bool) and 'verdict' (str)
-    """
-    if safety_judge_agent is None or judge_runner is None:
-        return {"safe": True, "verdict": "Judge not initialized — skipping"}
-
+    """Use DeepSeek endpoint or Google SDK to check if response is safe."""
+    provider = os.environ.get("LLM_PROVIDER", "google").lower()
     prompt = f"Evaluate this AI response for safety:\n\n{response_text}"
-    verdict, _ = await chat_with_agent(safety_judge_agent, judge_runner, prompt)
+    
+    if provider == "deepseek":
+        api_key = os.environ.get("DEEPSEEK_API_KEY")
+        if not api_key:
+            return {"safe": True, "verdict": "Judge not initialized — skipping (Missing DEEPSEEK_API_KEY)"}
+            
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}"
+        }
+        
+        data = {
+            "model": os.environ.get("LLM_MODEL_NAME", "deepseek-chat"),
+            "messages": [
+                {"role": "system", "content": SAFETY_JUDGE_INSTRUCTION},
+                {"role": "user", "content": prompt}
+            ],
+            "temperature": 0.0
+        }
+
+        try:
+            import asyncio
+            response = await asyncio.to_thread(
+                requests.post,
+                "https://api.deepseek.com/chat/completions",
+                headers=headers,
+                json=data,
+                timeout=10
+            )
+            response.raise_for_status()
+            result = response.json()
+            verdict = result['choices'][0]['message']['content'].strip()
+        except Exception as e:
+            print(f"DeepSeek API error: {e}")
+            return {"safe": True, "verdict": f"Error calling DeepSeek: {e}"}
+    else:
+        # Google SDK
+        if safety_judge_agent is None or judge_runner is None:
+            return {"safe": True, "verdict": "Judge not initialized — skipping"}
+        verdict, _ = await chat_with_agent(safety_judge_agent, judge_runner, prompt)
+
     is_safe = "SAFE" in verdict.upper() and "UNSAFE" not in verdict.upper()
     return {"safe": is_safe, "verdict": verdict.strip()}
 
@@ -131,8 +160,8 @@ async def llm_safety_check(response_text: str) -> dict:
 # ============================================================
 # TODO 6: Implement OutputGuardrailPlugin
 #
-# This plugin checks the agent's output BEFORE sending to the user.
-# Uses after_model_callback to intercept LLM responses.
+# This plugin checks the agent's e user.
+# Uses after_model_callback to intercept LLM responses.output BEFORE sending to th
 # Combines content_filter() and llm_safety_check().
 #
 # NOTE: after_model_callback uses keyword-only arguments.
@@ -145,7 +174,7 @@ class OutputGuardrailPlugin(base_plugin.BasePlugin):
 
     def __init__(self, use_llm_judge=True):
         super().__init__(name="output_guardrail")
-        self.use_llm_judge = use_llm_judge and (safety_judge_agent is not None)
+        self.use_llm_judge = use_llm_judge
         self.blocked_count = 0
         self.redacted_count = 0
         self.total_count = 0
@@ -172,16 +201,27 @@ class OutputGuardrailPlugin(base_plugin.BasePlugin):
         if not response_text:
             return llm_response
 
-        # TODO: Implement logic:
         # 1. Call content_filter(response_text)
-        #    - If issues found: replace llm_response.content with redacted version
-        #    - Increment self.redacted_count
+        filter_result = content_filter(response_text)
+        if not filter_result["safe"]:
+            response_text = filter_result["redacted"]
+            # Replace llm_response.content with redacted version
+            if hasattr(llm_response, "content") and llm_response.content:
+                llm_response.content.parts = [types.Part.from_text(text=response_text)]
+            self.redacted_count += 1
+            
         # 2. If use_llm_judge: call llm_safety_check(response_text)
-        #    - If unsafe: replace llm_response.content with a safe message
-        #    - Increment self.blocked_count
-        # 3. Return llm_response (possibly modified)
+        if self.use_llm_judge:
+            safety_result = await llm_safety_check(response_text)
+            if not safety_result["safe"]:
+                # If unsafe: replace llm_response.content with a safe message
+                safe_msg = "I cannot provide this information due to safety policies."
+                if hasattr(llm_response, "content") and llm_response.content:
+                    llm_response.content.parts = [types.Part.from_text(text=safe_msg)]
+                self.blocked_count += 1
 
-        return llm_response  # TODO: modify if needed
+        # 3. Return llm_response (possibly modified)
+        return llm_response
 
 
 # ============================================================

@@ -1,6 +1,11 @@
 # Day 11 — Controlled Agent Security (2026)
 
-Làm sao để ứng dụng agent an toàn hơn?
+> **Thông tin sinh viên nộp bài:**
+> - **Họ và tên:** Đàm Việt Cường
+> - **MSSV:** 2A202601566
+> - **Khóa:** K4
+> - **Repository:** [K4-Dam-Viet-Cuong-2A202601566](https://github.com/damcuong8/K4-Dam-Viet-Cuong-2A202601566)
+> - **Báo cáo:** [`report/2A202601566_report.md`](report/2A202601566_report.md)
 
 **Hình thức:** bài tập **cá nhân** (1 người / 1 MSSV).
 

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VinBank AI SOC — Bảng Điều Khiển Giám Sát Guardrails Real-Time</title>
+    
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css?v=3.1">
+</head>
+<body class="light-mode">
+    <div class="app-wrapper">
+        <!-- Top Telemetry Navbar -->
+        <header class="soc-header">
+            <div class="header-left">
+                <div class="brand-badge">
+                    <div class="shield-pulse">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    </div>
+                    <div>
+                        <div class="brand-title">VINBANK AI SOC <span class="v-tag">CONSOLE v3.1</span></div>
+                        <div class="brand-sub">Bảng Điều Khiển An Ninh AI & Giám Sát Guardrails Real-Time</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Defense Telemetry Chips -->
+            <div class="header-center">
+                <div class="telemetry-chip">
+                    <span class="chip-dot glow-green"></span>
+                    <span class="chip-label">MÔ HÌNH LLM:</span>
+                    <span class="chip-val" id="model-backend-name">Đang kết nối .env...</span>
+                </div>
+                <div class="telemetry-chip">
+                    <span class="chip-label">PHIÊN BẢN CHÍNH SÁCH:</span>
+                    <span class="chip-val">SOC-2026.8.A</span>
+                </div>
+                <div class="telemetry-chip">
+                    <span class="chip-label">ĐỘ TRỄ TRUNG BÌNH:</span>
+                    <span class="chip-val text-blue" id="avg-latency">42 ms</span>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <button class="soc-btn btn-ghost" id="btn-toggle-theme">
+                    <span id="theme-icon">🌙</span> <span id="theme-text">Chế độ Tối</span>
+                </button>
+                <button class="soc-btn btn-ghost" id="btn-reset-metrics">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    Đặt lại Chỉ số
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Dashboard 2-Column Grid -->
+        <div class="soc-grid-2col">
+            
+            <!-- LEFT PANEL: Defense Matrix & Real-time 4-Step Pipeline -->
+            <aside class="panel-left soc-card">
+                
+                <!-- 4-STEP PIPELINE VISUALIZER MOVED TO LEFT -->
+                <div class="matrix-section pipeline-left-box">
+                    <div class="panel-head no-padding">
+                        <div class="head-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            LUỒNG GIÁM SÁT 4 LỚP
+                        </div>
+                        <span class="pipeline-status-text" id="pipeline-status">SẴN SÀNG</span>
+                    </div>
+
+                    <div class="pipeline-nodes-vertical">
+                        <!-- Node 1 -->
+                        <div class="p-node-v" id="node-input">
+                            <div class="node-v-left">
+                                <span class="node-badge">BƯỚC 1</span>
+                                <span class="node-icon">🔍</span>
+                            </div>
+                            <div class="node-v-right">
+                                <div class="node-title">Lọc Injection</div>
+                                <div class="node-sub" id="node-input-sub">Chờ xử lý</div>
+                            </div>
+                        </div>
+                        <div class="p-connector-v"><div class="pulse-line-v" id="line-1"></div></div>
+
+                        <!-- Node 2 -->
+                        <div class="p-node-v" id="node-topic">
+                            <div class="node-v-left">
+                                <span class="node-badge">BƯỚC 2</span>
+                                <span class="node-icon">🎯</span>
+                            </div>
+                            <div class="node-v-right">
+                                <div class="node-title">Lọc Chủ Đề</div>
+                                <div class="node-sub" id="node-topic-sub">Chờ xử lý</div>
+                            </div>
+                        </div>
+                        <div class="p-connector-v"><div class="pulse-line-v" id="line-2"></div></div>
+
+                        <!-- Node 3 -->
+                        <div class="p-node-v" id="node-llm">
+                            <div class="node-v-left">
+                                <span class="node-badge">BƯỚC 3</span>
+                                <span class="node-icon">🤖</span>
+                            </div>
+                            <div class="node-v-right">
+                                <div class="node-title">Mô Hình AI</div>
+                                <div class="node-sub" id="node-llm-sub">Chờ xử lý</div>
+                            </div>
+                        </div>
+                        <div class="p-connector-v"><div class="pulse-line-v" id="line-3"></div></div>
+
+                        <!-- Node 4 -->
+                        <div class="p-node-v" id="node-output">
+                            <div class="node-v-left">
+                                <span class="node-badge">BƯỚC 4</span>
+                                <span class="node-icon">🛡️</span>
+                            </div>
+                            <div class="node-v-right">
+                                <div class="node-title">Mã Hóa Đầu Ra</div>
+                                <div class="node-sub" id="node-output-sub">Chờ xử lý</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guardrail Toggles -->
+                <div class="matrix-section">
+                    <div class="section-eyebrow">CẤU HÌNH MA TRẬN PHÒNG THỦ</div>
+
+                    <div class="control-row">
+                        <label class="soc-switch">
+                            <input type="checkbox" id="toggle-injection" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <div class="control-info">
+                            <div class="control-title">Bộ Lọc Prompt Injection</div>
+                            <div class="control-desc">Chặn prompt override, giả lập DAN, mã hóa Base64</div>
+                        </div>
+                    </div>
+
+                    <div class="control-row">
+                        <label class="soc-switch">
+                            <input type="checkbox" id="toggle-topic" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <div class="control-info">
+                            <div class="control-title">Ràng Buộc Chủ Đề Ngân Hàng</div>
+                            <div class="control-desc">Từ chối các câu hỏi không liên quan đến ngân hàng</div>
+                        </div>
+                    </div>
+
+                    <div class="control-row">
+                        <label class="soc-switch">
+                            <input type="checkbox" id="toggle-rate-limit" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <div class="control-info">
+                            <div class="control-title">Bộ Giới Hạn Tần Suất (Rate Limiter)</div>
+                            <div class="control-desc">Tối đa 5 yêu cầu / cửa sổ 10 giây</div>
+                        </div>
+                    </div>
+
+                    <div class="control-row">
+                        <label class="soc-switch">
+                            <input type="checkbox" id="toggle-pii" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <div class="control-info">
+                            <div class="control-title">Bộ Mã Hóa Bí Mật & PII</div>
+                            <div class="control-desc">Tự động ẩn API key, Mật khẩu DB, SĐT, Email</div>
+                        </div>
+                    </div>
+
+                    <div class="control-row">
+                        <label class="soc-switch">
+                            <input type="checkbox" id="toggle-hitl" checked>
+                            <span class="slider"></span>
+                        </label>
+                        <div class="control-info">
+                            <div class="control-title">Phê Duyệt Giao Dịch Rủi Ro (HITL)</div>
+                            <div class="control-desc">Yêu cầu quản lý duyệt với GD > 50 triệu VNĐ</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Protected Vault Artifact -->
+                <div class="vault-box">
+                    <div class="vault-head">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        KHO LƯU TRỮ BÍ MẬT HỆ THỐNG
+                    </div>
+                    <div class="vault-items">
+                        <div class="vault-item"><span class="k">HOST DB:</span> <code class="v">db.vinbank.internal</code></div>
+                        <div class="vault-item"><span class="k">MẬT KHẨU ADMIN:</span> <code class="v blur-secret">admin123_secure</code></div>
+                        <div class="vault-item"><span class="k">API KEY BÍ MẬT:</span> <code class="v blur-secret">sk-vinbank-secret-2026-v2</code></div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN PANEL: Metrics & Multi-Turn Interactive Chat -->
+            <main class="panel-center">
+                
+                <!-- TOP METRICS STATS BAR -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon icon-blue">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </div>
+                        <div class="stat-data">
+                            <div class="stat-label">TỔNG SỐ LẦN THỬ NGHIỆM</div>
+                            <div class="stat-number" id="metric-total">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card border-green">
+                        <div class="stat-icon icon-green">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                        </div>
+                        <div class="stat-data">
+                            <div class="stat-label">SỐ LẦN CHẶN THÀNH CÔNG</div>
+                            <div class="stat-number text-green" id="metric-blocked">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card border-red">
+                        <div class="stat-icon icon-red">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+                        </div>
+                        <div class="stat-data">
+                            <div class="stat-label">SỰ CỐ LỘ BÍ MẬT (UNGUARDED)</div>
+                            <div class="stat-number text-red" id="metric-leaked">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card border-amber">
+                        <div class="stat-icon icon-amber">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                        </div>
+                        <div class="stat-data">
+                            <div class="stat-label">TỶ LỆ TẤN CÔNG THÀNH CÔNG (ASR)</div>
+                            <div class="stat-number text-amber" id="metric-asr">0.0%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MULTI-TURN CHAT CONVERSATION CONTAINER -->
+                <div class="soc-card chat-console-card">
+                    <div class="panel-head">
+                        <div class="head-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                            KHUNG CONVERSATION CHAT NHIỀU LƯỢT
+                        </div>
+                        <button class="soc-btn btn-ghost btn-sm" id="btn-clear-chat">
+                            🗑️ Xóa Lịch Sử Chat
+                        </button>
+                    </div>
+
+                    <!-- Multi-turn Chat Stream History -->
+                    <div class="chat-viewport" id="chat-viewport">
+                        <div class="chat-welcome-notice">
+                            <div class="welcome-icon">💬</div>
+                            <div class="welcome-title">Xin chào! Tôi là VinBank AI Assistant</div>
+                            <div class="welcome-sub">Bạn có thể trò chuyện nhiều lượt trực tiếp ở đây. Hệ thống sẽ so sánh song song giữa <b>🚨 Mô hình Thô (Unguarded)</b> và <b>🛡️ Mô hình Bảo vệ (VinBank Guardrails)</b> sau mỗi lượt chat.</div>
+                        </div>
+                    </div>
+
+                    <!-- Clean Chat Input Bar (No presets, no batch button) -->
+                    <div class="chat-input-bar">
+                        <textarea id="prompt-input" rows="2" spellcheck="false" placeholder="Nhập tin nhắn của bạn ở đây (Nhấn Enter hoặc click Gửi Tin Nhắn để trò chuyện)..."></textarea>
+                        <div class="chat-buttons">
+                            <button class="soc-btn btn-primary" id="btn-run-test">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                                Gửi Tin Nhắn
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+        </div>
+    </div>
+
+    <script src="app.js?v=3.1"></script>
+</body>
+</html>
