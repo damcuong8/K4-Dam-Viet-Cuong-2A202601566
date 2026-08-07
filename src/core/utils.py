@@ -59,13 +59,14 @@ async def chat_with_agent(agent, runner, user_message: str, session_id=None):
             "Content-Type": "application/json",
             "Authorization": f"Bearer {api_key}",
         }
+        temp = float(os.environ.get("LLM_TEMPERATURE", "0.0"))
         data = {
             "model": model_name,
             "messages": [
                 {"role": "system", "content": system_instruction},
                 {"role": "user", "content": user_message},
             ],
-            "temperature": 0.7,
+            "temperature": temp,
         }
 
         try:
@@ -146,13 +147,14 @@ async def chat_with_agent(agent, runner, user_message: str, session_id=None):
             "Content-Type": "application/json",
             "Authorization": f"Bearer {api_key}",
         }
+        temp = float(os.environ.get("LLM_TEMPERATURE", "0.0"))
         data = {
             "model": model_name,
             "messages": [
                 {"role": "system", "content": system_instruction},
                 {"role": "user", "content": user_message},
             ],
-            "temperature": 0.7,
+            "temperature": 0.0,
         }
 
         try:
